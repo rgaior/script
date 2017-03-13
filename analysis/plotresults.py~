@@ -1,0 +1,23 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+file = '/Users/romain/work/Auger/EASIER/IPNcode/script/results/results.npz'
+res = np.load(file)
+print 'res = ' , res['mean']
+print 'res = ' , res['rms']
+nrofiter = 10
+err = res['rms']/np.sqrt(nrofiter)
+plt.fill_between(res['scales'],res['mean']- err,res['mean'] + err, alpha =0.7)
+plt.gca().set_xscale("log")
+plt.gca().set_yscale("log")
+plt.xlabel('signal scaling')
+plt.ylabel('number of events per year')
+plt.gca().annotate('Gorham 2008', color='red', xy=(200, res['mean'][-1]), xytext=(200, res['mean'][-1]/10),                                                         
+                   arrowprops=dict(facecolor='red', edgecolor='red', shrink=0.1), fontsize=20, horizontalalignment='center',
+                   )   
+plt.gca().annotate('Al Samarai 2016', color='red', xy=(1, res['mean'][0]), xytext=(1, 10*res['mean'][0]),                                                         
+                   arrowprops=dict(facecolor='red', edgecolor='red', shrink=0.1), fontsize=20, horizontalalignment='center',
+                   )   
+plt.grid('on')
+plt.ylim(0.1,20)
+plt.show()

@@ -1,0 +1,81 @@
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+import numpy as np
+import os
+import sys
+import glob
+cwd = os.getcwd()
+classpath = cwd + '/../classes/'
+utilspath = cwd + '/../utils/'
+sys.path.append(utilspath)
+sys.path.append(classpath)
+import utils
+import constant
+import event
+
+basename = sys.argv[1]
+
+folder = '/Users/romain/work/Auger/EASIER/IPNcode/myversion/out/'
+names = glob.glob(folder + basename + '*.dat')
+col = constant.col
+#fig = plt.figure()
+#ax = fig.add_subplot(111, projection='3d')
+#print names
+for n in names:
+    ev = event.Event(fname=n, type='test')
+    ev.loadevent()
+#    figtrace = plt.figure()
+#    figtrace.suptitle('file: '+n,fontweight='bold',fontsize=15)
+#    axtrace = plt.subplot(111) 
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows=2, ncols=2,figsize=(12,10))
+#    ax1 = plt.subplot(221)
+#    ax1.plot(ev.shower.posz,ev.shower.electron[:-1]/(np.max(ev.shower.electron)), '--',lw =2,label='Ne')
+#    fig2 = plt.figure()
+#    ax2 = plt.subplot(212)
+#    fig3 = plt.figure()
+#    ax3 = plt.subplot(221)
+#    fig4 = plt.figure()
+#    ax4 = plt.subplot(222)
+    for ant in ev.antennas: 
+        if np.isnan(np.max(ant.power)):
+            print 'nan !!!!!!!'
+            continue
+        time = ant.maketimearray()
+#         ## temp modif
+#         if ant.id == 0:
+#             antpos = constant.EA7position[342]
+#         if ant.id == 1:
+#             antpos = constant.EA7position[342]
+#         if ant.id == 2:
+#             antpos = constant.EA7position[341]
+        antpos = constant.EA7position[ant.id]
+        antpos = np.array([antpos[0],antpos[1],0])
+        showercoord = np.array([ev.shower.posx, ev.shower.posy, ev.shower.posz])
+        temptheta = np.arctan(showercoord[2]/np.sqrt(showercoord[0]**2 + showercoord[1]**2) )
+        tempthetadeg = temptheta*180/3.14
+        antshower = np.array([showercoord[0] - antpos[0], showercoord[1] - antpos[1], showercoord[2] - antpos[2]])        
+        thetaantshower = np.arctan(antshower[2]/np.sqrt(antshower[0]**2 + antshower[1]**2) )
+        thetaantshowerdeg = thetaantshower*180/3.14
+        time = ant.maketimearray()
+        ax1.plot(antshower[2],ant.aeff/np.max(ant.aeff),c=col[ant.id],label=str(ant.id))
+        ax1.set_xlabel('height [m]')
+        ax1.set_ylabel('normed effective area')
+        ax1.legend()
+        ax2.plot(antshower[2], thetaantshowerdeg,c=col[ant.id],label=str(ant.id))
+        ax2.set_xlabel('height [m]')
+        ax2.set_ylabel('shower-antenna angle [deg]')
+        ax2.legend(loc=4)
+        time = ant.maketimearray()
+#        ax3.set_ylabel('flux [w/m^2/s]')
+        ax3.plot(thetaantshowerdeg,ant.aeff,c=col[ant.id],label=str(ant.id))
+        ax3.set_ylabel('antenna effective area [m^2]')
+        ax3.set_xlabel('shower-antenna angle [deg]')
+        ax3.legend(loc=4)
+        ax4.plot(time*1e6,ant.power,c=col[ant.id],label=str(ant.id))
+#        ax4.semilogy(time*1e6,ant.power,c=col[ant.id],label=str(ant.id))
+        ax4.set_xlim(0,10)
+        ax4.set_xlabel('time [ns]')
+        ax4.set_ylabel('power [W]')
+        ax4.set_ylim(np.max(ant.power)/1e6,2*np.max(ant.power))
+        ax4.legend(loc=4)
+plt.show()
